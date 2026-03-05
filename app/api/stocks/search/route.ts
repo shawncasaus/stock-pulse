@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { PolygonTickerSearchResponse, Stock, StockSearchResponse } from '@/types/stock.types';
+import { rateLimiter } from '@/lib/rateLimit';
 
 const POLYGON_BASE_URL = 'https://api.polygon.io';
 const DEFAULT_LIMIT = 10;
@@ -177,7 +178,12 @@ export async function GET(request: NextRequest) {
     }
 
     const polygonUrl = buildPolygonUrl(params.query, params.limit, apiKey);
-    const polygonData = await fetchFromPolygon(polygonUrl);
+    
+    // Wrap Polygon API call with rate limiter
+    const polygonData = await rateLimiter.executeRequest(async () => {
+      return await fetchFromPolygon(polygonUrl);
+    });
+    
     const results = transformResults(polygonData);
     return createSuccessResponse(results);
 
