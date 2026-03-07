@@ -1,36 +1,306 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# StockPulse
+
+An interactive single-page application for charting US stock prices over time. Built for fund managers to analyze historical price data and compare multiple stocks simultaneously.
+
+## Features
+
+- **Stock Search**: Search and select up to 3 US stocks by ticker symbol or company name
+- **Interactive Charts**: View time series data with zoom, pan, and hover interactions
+- **Price Type Toggle**: Switch between Open, High, Low, and Close prices
+- **Date Range Selection**: Customize the time period for analysis
+- **Real-time Search**: Debounced search with instant results
+- **Rate Limiting**: Respects Polygon.io free tier limits (5 API calls/minute)
+
+## Tech Stack
+
+- **Framework**: Next.js 15 (App Router) with TypeScript
+- **State Management**: Zustand
+- **Data Fetching**: SWR with client-side caching
+- **Charting**: Apache ECharts
+- **Styling**: Tailwind CSS
+- **API**: Polygon.io (free tier)
+
+## Prerequisites
+
+- Node.js 18+ and npm
+- Polygon.io API key (free tier) - [Sign up here](https://polygon.io)
 
 ## Getting Started
 
-First, run the development server:
+### 1. Clone and Install
+
+```bash
+git clone <repository-url>
+cd stock-pulse
+npm install
+```
+
+### 2. Configure Environment Variables
+
+Create a `.env.local` file in the root directory:
+
+```bash
+cp .env.example .env.local
+```
+
+Add your Polygon.io API key:
+
+```
+POLYGON_API_KEY=your_api_key_here
+```
+
+### 3. Run Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 4. Build for Production
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+stock-pulse/
+├── app/
+│   ├── api/
+│   │   └── stocks/
+│   │       ├── search/route.ts       # Stock ticker search endpoint
+│   │       └── aggregates/route.ts   # Historical price data endpoint
+│   ├── layout.tsx                    # Root layout with metadata
+│   ├── page.tsx                      # Main application page
+│   └── globals.css                   # Global styles
+├── components/                       # React components (to be built)
+├── hooks/
+│   ├── useStockData.ts              # SWR hook for fetching stock data
+│   ├── useStockSearch.ts            # Hook for searching stocks
+│   ├── useDebounce.ts               # Generic debounce hook
+│   └── useChartOptions.ts           # ECharts configuration generator
+├── lib/
+│   ├── polygonClient.ts             # Polygon API client wrapper
+│   └── rateLimit.ts                 # Rate limiter (5 calls/min)
+├── store/
+│   └── useStockStore.ts             # Zustand global state store
+├── types/
+│   └── stock.types.ts               # TypeScript type definitions
+├── utils/
+│   └── dataTransform.ts             # Data transformation utilities
+└── __tests__/                       # Test files (to be built)
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## API Endpoints
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### GET `/api/stocks/search`
 
-## Deploy on Vercel
+Search for US stock tickers by symbol or company name.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**Query Parameters:**
+- `query` (required): Search term (e.g., "AAPL", "Apple")
+- `limit` (optional): Max results (default: 10, max: 50)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Example Request:**
+```
+GET /api/stocks/search?query=apple&limit=10
+```
+
+**Example Response:**
+```json
+{
+  "success": true,
+  "results": [
+    {
+      "symbol": "AAPL",
+      "name": "Apple Inc.",
+      "exchange": "NASDAQ"
+    }
+  ]
+}
+```
+
+### GET `/api/stocks/aggregates`
+
+Fetch historical daily price data (OHLCV) for multiple stocks.
+
+**Query Parameters:**
+- `symbols` (required): Comma-separated ticker symbols (max 3)
+- `from` (required): Start date in YYYY-MM-DD format
+- `to` (required): End date in YYYY-MM-DD format
+
+**Example Request:**
+```
+GET /api/stocks/aggregates?symbols=AAPL,MSFT,TSLA&from=2024-01-01&to=2024-12-31
+```
+
+**Example Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "AAPL": [
+      {
+        "t": 1704153600000,
+        "o": 185.23,
+        "h": 186.95,
+        "l": 184.50,
+        "c": 186.40,
+        "v": 45678900
+      }
+    ],
+    "MSFT": [...],
+    "TSLA": [...]
+  }
+}
+```
+
+**Response Fields:**
+- `t`: Timestamp (milliseconds)
+- `o`: Open price
+- `h`: High price
+- `l`: Low price
+- `c`: Close price
+- `v`: Trading volume
+
+## State Management
+
+The application uses Zustand for global state management:
+
+```typescript
+// Access store in any component
+import { useStockStore } from '@/store/useStockStore';
+
+const { selectedStocks, dateRange, priceType, addStock, removeStock } = useStockStore();
+```
+
+**Store State:**
+- `selectedStocks`: Array of selected ticker symbols (max 3)
+- `dateRange`: Object with `from` and `to` dates
+- `priceType`: One of 'open' | 'high' | 'low' | 'close'
+
+**Store Actions:**
+- `addStock(symbol)`: Add a stock (validates max 3 and no duplicates)
+- `removeStock(symbol)`: Remove a stock
+- `setStocks(symbols)`: Set all stocks at once
+- `setDateRange(range)`: Update date range
+- `setPriceType(type)`: Change price type
+- `clearStocks()`: Clear all selections
+- `canAddStock()`: Check if another stock can be added
+- `hasStocks()`: Check if any stocks are selected
+
+## Data Fetching
+
+The app uses SWR for efficient data fetching with caching:
+
+```typescript
+import { useStockData } from '@/hooks/useStockData';
+
+const { data, isLoading, error } = useStockData(
+  ['AAPL', 'MSFT'],
+  '2024-01-01',
+  '2024-12-31'
+);
+```
+
+**Features:**
+- 5-minute client-side cache
+- Automatic deduplication
+- No unnecessary refetching
+- Works seamlessly with Zustand store
+
+## Rate Limiting
+
+All Polygon API calls go through a rate limiter that enforces the 5 calls/minute limit:
+
+```typescript
+// Automatically handled in API routes
+const data = await rateLimiter.executeRequest(() =>
+  fetchPolygonAggregates(symbol, from, to)
+);
+```
+
+The rate limiter uses a sliding window algorithm and queues requests that exceed the limit.
+
+## Key Constraints
+
+- **Maximum 3 stocks** can be selected simultaneously
+- **5 API calls per minute** (Polygon free tier limit)
+- **US stocks only** from major exchanges
+- **Date format**: YYYY-MM-DD required
+- **Free tier data**: 2 years of historical data available
+
+## Development Notes
+
+### Adding New API Routes
+
+All API routes should:
+1. Use the rate limiter for Polygon API calls
+2. Include proper validation
+3. Return consistent response format with `success` and `error` fields
+4. Handle all error cases (404, 429, 401, 500)
+
+### State Updates
+
+Use Zustand actions instead of direct state mutation:
+
+```typescript
+// ✓ Good
+addStock('AAPL');
+
+// ✗ Bad - don't mutate state directly
+selectedStocks.push('AAPL');
+```
+
+### Type Safety
+
+All API responses and data structures are fully typed. Import types from `@/types/stock.types`:
+
+```typescript
+import type { Stock, PolygonBar, StockDataMap } from '@/types/stock.types';
+```
+
+## Testing
+
+Tests will be located in the `__tests__/` directory using Jest and React Testing Library.
+
+```bash
+npm test              # Run tests
+npm test -- --watch   # Run in watch mode
+npm test -- --coverage # Generate coverage report
+```
+
+## Troubleshooting
+
+### Rate Limit Errors
+If you see "Rate limit exceeded" errors:
+- Wait 1 minute between bursts of requests
+- The rate limiter automatically queues requests
+- Client-side cache (SWR) reduces API calls
+
+### Missing Data
+If stock data is empty:
+- Verify the ticker symbol is correct
+- Check the date range is within the last 2 years (free tier limit)
+- Ensure markets were open on those dates
+
+### API Key Issues
+If you see authentication errors:
+- Verify `POLYGON_API_KEY` is set in `.env.local`
+- Check the API key is valid at [polygon.io](https://polygon.io)
+- Restart the development server after changing `.env.local`
+
+## Resources
+
+- [Polygon.io API Documentation](https://polygon.io/docs/stocks)
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Zustand Documentation](https://zustand-demo.pmnd.rs/)
+- [Apache ECharts Documentation](https://echarts.apache.org/en/index.html)
+- [SWR Documentation](https://swr.vercel.app/)
+
+## License
+
+This project is for educational/assignment purposes.
