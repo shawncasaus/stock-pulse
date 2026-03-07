@@ -1,24 +1,13 @@
 /**
  * Polygon.io API Client
- * 
- * Wrapper functions for calling Polygon.io REST API endpoints.
- * Handles authentication, URL building, and error handling.
- * 
- * API Documentation: https://polygon.io/docs/stocks
+ * Handles authentication, URL building, and error handling for Polygon API calls.
  */
 
 import type { PolygonBar, PolygonResponse } from '@/types/stock.types';
 
 const POLYGON_BASE_URL = 'https://api.polygon.io';
 
-// ============================================================================
-// Helper Functions
-// ============================================================================
-
-/**
- * Gets the Polygon API key from environment variables
- * Throws if not configured
- */
+/** Gets the Polygon API key from environment variables */
 function getApiKey(): string {
   const apiKey = process.env.POLYGON_API_KEY;
 
@@ -29,9 +18,7 @@ function getApiKey(): string {
   return apiKey;
 }
 
-/**
- * Validates date string format (YYYY-MM-DD)
- */
+/** Validates date string format (YYYY-MM-DD) */
 function validateDateFormat(date: string, fieldName: string): void {
   const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
   
@@ -45,9 +32,7 @@ function validateDateFormat(date: string, fieldName: string): void {
   }
 }
 
-/**
- * Validates stock symbol format (1-5 uppercase letters)
- */
+/** Validates stock symbol format (1-5 uppercase letters) */
 function validateSymbol(symbol: string): void {
   const symbolRegex = /^[A-Z]{1,5}$/;
   
@@ -56,10 +41,7 @@ function validateSymbol(symbol: string): void {
   }
 }
 
-/**
- * Builds the Polygon aggregates API URL
- * Endpoint: /v2/aggs/ticker/{symbol}/range/1/day/{from}/{to}
- */
+/** Builds the Polygon aggregates API URL with required parameters */
 function buildAggregatesUrl(
   symbol: string,
   from: string,
@@ -76,9 +58,7 @@ function buildAggregatesUrl(
   return urlWithParams.toString();
 }
 
-/**
- * Handles Polygon API response errors
- */
+/** Handles Polygon API response errors and throws appropriate error types */
 function handlePolygonError(status: number, statusText: string, symbol: string): never {
   if (status === 404) {
     throw new Error(`Stock symbol '${symbol}' not found or has no data for the specified date range.`);
@@ -95,22 +75,9 @@ function handlePolygonError(status: number, statusText: string, symbol: string):
   throw new Error(`Polygon API error: ${status} ${statusText}`);
 }
 
-// ============================================================================
-// Public API Functions
-// ============================================================================
-
 /**
- * Fetches daily aggregate (OHLCV) data for a stock symbol
- * 
- * @param symbol - Stock ticker symbol (e.g., 'AAPL', 'MSFT')
- * @param from - Start date in YYYY-MM-DD format
- * @param to - End date in YYYY-MM-DD format
- * @returns Array of PolygonBar objects with OHLCV data
- * 
- * @throws Error if symbol is invalid, dates are invalid, or API call fails
- * 
- * Example:
- *   const data = await fetchPolygonAggregates('AAPL', '2024-01-01', '2024-12-31');
+ * Fetches daily aggregate (OHLCV) data for a stock symbol.
+ * Validates inputs and handles Polygon API errors.
  */
 export async function fetchPolygonAggregates(
   symbol: string,
@@ -139,50 +106,24 @@ export async function fetchPolygonAggregates(
     },
   });
 
-  if (!response.ok) {
-    handlePolygonError(response.status, response.statusText, symbol);
-  }
-
+  // Polygon returns 200 status even for some errors, so check response body
   const data: PolygonResponse = await response.json();
 
+  // Check for authorization errors (e.g., date range outside plan)
+  if (data.status === 'NOT_AUTHORIZED') {
+    const errorMessage = 'message' in data ? (data as { message: string }).message : 'Data timeframe not included in your plan. Free tier: 2 years historical data only.';
+    throw new Error(`NOT_AUTHORIZED: ${errorMessage}`);
+  }
+
+  // Check for other API errors
   if (data.status === 'ERROR') {
     throw new Error(`Polygon API error for ${symbol}: ${data.status}`);
   }
 
+  // Check HTTP status code
+  if (!response.ok) {
+    handlePolygonError(response.status, response.statusText, symbol);
+  }
+
   return data.results || [];
-}
-
-/**
- * Fetches data for multiple symbols in parallel
- * 
- * @param symbols - Array of stock ticker symbols
- * @param from - Start date in YYYY-MM-DD format
- * @param to - End date in YYYY-MM-DD format
- * @returns Map of symbol to PolygonBar array
- * 
- * Note: This does NOT use rate limiting. Wrap calls with rateLimiter.executeRequest()
- * 
- * Example:
- *   const data = await fetchMultipleStocks(['AAPL', 'MSFT'], '2024-01-01', '2024-12-31');
- *   // Returns: { AAPL: [...], MSFT: [...] }
- */
-export async function fetchMultipleStocks(
-  symbols: string[],
-  from: string,
-  to: string
-): Promise<Record<string, PolygonBar[]>> {
-  const results: Record<string, PolygonBar[]> = {};
-  const promises = symbols.map(async (symbol) => {
-    try {
-      const data = await fetchPolygonAggregates(symbol, from, to);
-      results[symbol] = data;
-    } catch (error) {
-      console.error(`Error fetching ${symbol}:`, error);
-      results[symbol] = [];
-    }
-  });
-
-  await Promise.all(promises);
-
-  return results;
 }

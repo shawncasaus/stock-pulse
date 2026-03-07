@@ -1,22 +1,11 @@
 /**
  * Rate Limiter for Polygon API
- * 
- * Implements a sliding window rate limiter to respect Polygon's API limits.
- * Free tier: 5 calls per minute
- * 
- * Usage:
- *   const result = await rateLimiter.executeRequest(async () => {
- *     return await fetch('...');
- *   });
+ * Implements sliding window algorithm to respect 5 calls/minute limit.
  */
 
 const MAX_REQUESTS = 5;
-const WINDOW_MS = 60000; // 1 minute in milliseconds
-const BUFFER_MS = 100; // Small buffer to be conservative
-
-/**
- * RateLimiter class using sliding window algorithm
- */
+const WINDOW_MS = 60000;
+const BUFFER_MS = 100;
 class RateLimiter {
   private requestTimestamps: number[] = [];
   private readonly maxRequests: number;
@@ -27,23 +16,14 @@ class RateLimiter {
     this.windowMs = windowMs;
   }
 
-  /**
-   * Executes a request function while respecting rate limits
-   * Automatically queues requests that exceed the limit
-   */
+  /** Executes a request function while respecting rate limits */
   async executeRequest<T>(fn: () => Promise<T>): Promise<T> {
     await this.waitIfNeeded();
-    
-    // Record this request timestamp
     this.requestTimestamps.push(Date.now());
-    
-    // Execute the request
     return await fn();
   }
 
-  /**
-   * Waits if we've hit the rate limit
-   */
+  /** Waits if rate limit has been reached */
   private async waitIfNeeded(): Promise<void> {
     while (true) {
       this.cleanupOldTimestamps();
@@ -60,14 +40,11 @@ class RateLimiter {
       if (waitTime > 0) {
         console.log(`[RateLimiter] Rate limit reached. Waiting ${waitTime}ms before next request.`);
         await this.sleep(waitTime);
-        // Loop will continue and check again after waiting
       }
     }
   }
 
-  /**
-   * Removes timestamps older than the sliding window
-   */
+  /** Removes timestamps older than the sliding window */
   private cleanupOldTimestamps(): void {
     const now = Date.now();
     this.requestTimestamps = this.requestTimestamps.filter(
@@ -75,26 +52,18 @@ class RateLimiter {
     );
   }
 
-  /**
-   * Helper to sleep for specified milliseconds
-   */
+  /** Helper to sleep for specified milliseconds */
   private sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  /**
-   * Gets the current number of requests in the window
-   * Useful for debugging/monitoring
-   */
+  /** Gets the current number of requests in the window */
   getCurrentRequestCount(): number {
     this.cleanupOldTimestamps();
     return this.requestTimestamps.length;
   }
 
-  /**
-   * Gets the time until the next request slot is available
-   * Returns 0 if a slot is currently available
-   */
+  /** Gets the time until the next request slot is available (0 if available now) */
   getTimeUntilNextSlot(): number {
     this.cleanupOldTimestamps();
     
@@ -110,21 +79,13 @@ class RateLimiter {
     return Math.max(0, waitTime);
   }
 
-  /**
-   * Resets the rate limiter (useful for testing)
-   */
+  /** Resets the rate limiter */
   reset(): void {
     this.requestTimestamps = [];
   }
 }
 
-/**
- * Singleton instance for Polygon API rate limiting
- * Export this for use throughout the application
- */
+/** Singleton instance for Polygon API rate limiting */
 export const rateLimiter = new RateLimiter(MAX_REQUESTS, WINDOW_MS);
 
-/**
- * Export the class for testing purposes
- */
 export { RateLimiter };

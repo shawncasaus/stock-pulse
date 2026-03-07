@@ -6,13 +6,7 @@ const POLYGON_BASE_URL = 'https://api.polygon.io';
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 50;
 
-// ============================================================================
-// Helper Functions
-// ============================================================================
-
-/**
- * Validates that the API key is configured
- */
+/** Validates that the API key is configured */
 function validateApiKey(): string | null {
   const apiKey = process.env.POLYGON_API_KEY;
   
@@ -23,9 +17,7 @@ function validateApiKey(): string | null {
   return apiKey;
 }
 
-/**
- * Parses and validates query parameters from the request
- */
+/** Parses and validates query parameters from the request */
 function parseQueryParams(searchParams: URLSearchParams): { query: string; limit: number } | { error: string } {
   const query = searchParams.get('query');
   const limitParam = searchParams.get('limit');
@@ -45,27 +37,22 @@ function parseQueryParams(searchParams: URLSearchParams): { query: string; limit
   };
 }
 
-/**
- * Builds the Polygon API URL with proper query parameters
- * Reference: https://polygon.io/docs/stocks/get_v3_reference_tickers
- */
+/** Builds the Polygon API URL with proper query parameters */
 function buildPolygonUrl(query: string, limit: number, apiKey: string): string {
   const polygonUrl = new URL(`${POLYGON_BASE_URL}/v3/reference/tickers`);
   
   polygonUrl.searchParams.set('search', query);
-  polygonUrl.searchParams.set('market', 'stocks'); // Only US stocks
-  polygonUrl.searchParams.set('active', 'true'); // Only active tickers
+  polygonUrl.searchParams.set('market', 'stocks');
+  polygonUrl.searchParams.set('active', 'true');
   polygonUrl.searchParams.set('limit', limit.toString());
-  polygonUrl.searchParams.set('sort', 'ticker'); // Sort alphabetically
+  polygonUrl.searchParams.set('sort', 'ticker');
   polygonUrl.searchParams.set('order', 'asc');
   polygonUrl.searchParams.set('apiKey', apiKey);
   
   return polygonUrl.toString();
 }
 
-/**
- * Fetches ticker data from Polygon API
- */
+/** Fetches ticker data from Polygon API */
 async function fetchFromPolygon(url: string): Promise<PolygonTickerSearchResponse> {
   const response = await fetch(url, {
     method: 'GET',
@@ -98,24 +85,18 @@ async function fetchFromPolygon(url: string): Promise<PolygonTickerSearchRespons
   return data;
 }
 
-/**
- * Transforms Polygon ticker results to simplified Stock format for UI
- */
+/** Transforms Polygon ticker results to simplified Stock format */
 function transformResults(polygonResponse: PolygonTickerSearchResponse): Stock[] {
   return (polygonResponse.results || [])
-    .filter(ticker => {
-      // Filter to US stocks only
-      return ticker.locale === 'us' && ticker.market === 'stocks';
-    }).map(ticker => ({
+    .filter(ticker => ticker.locale === 'us' && ticker.market === 'stocks')
+    .map(ticker => ({
       symbol: ticker.ticker,
       name: ticker.name,
       exchange: ticker.primary_exchange,
     }));
 }
 
-/**
- * Creates an error response with appropriate status code
- */
+/** Creates an error response with appropriate status code */
 function createErrorResponse(error: string, status: number): NextResponse<StockSearchResponse> {
   return NextResponse.json(
     {
@@ -126,9 +107,7 @@ function createErrorResponse(error: string, status: number): NextResponse<StockS
   );
 }
 
-/**
- * Creates a success response with results
- */
+/** Creates a success response with results */
 function createSuccessResponse(results: Stock[]): NextResponse<StockSearchResponse> {
   return NextResponse.json(
     {
@@ -145,20 +124,9 @@ function createSuccessResponse(results: Stock[]): NextResponse<StockSearchRespon
   );
 }
 
-// ============================================================================
-// API Route Handler
-// ============================================================================
-
 /**
  * GET /api/stocks/search
- * 
- * Search for US stock tickers using Polygon.io ticker search API
- * 
- * Query Parameters:
- * - query: Search term (ticker symbol or company name)
- * - limit: Max results (default: 10, max: 50)
- * 
- * Example: /api/stocks/search?query=apple&limit=10
+ * Search for US stock tickers by symbol or company name.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -179,10 +147,9 @@ export async function GET(request: NextRequest) {
 
     const polygonUrl = buildPolygonUrl(params.query, params.limit, apiKey);
     
-    // Wrap Polygon API call with rate limiter
-    const polygonData = await rateLimiter.executeRequest(async () => {
-      return await fetchFromPolygon(polygonUrl);
-    });
+    const polygonData = await rateLimiter.executeRequest(() => 
+      fetchFromPolygon(polygonUrl)
+    );
     
     const results = transformResults(polygonData);
     return createSuccessResponse(results);
