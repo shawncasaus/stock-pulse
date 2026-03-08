@@ -86,11 +86,9 @@ export default function DateRangePicker() {
 
   return (
     <div className="space-y-4">
-      {/* Date Inputs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* From Date */}
         <div>
-          <label htmlFor="date-from" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="date-from" className="block text-sm font-medium mb-2 text-ctp-text">
             Start Date
           </label>
           <input
@@ -100,19 +98,14 @@ export default function DateRangePicker() {
             onChange={handleFromChange}
             max={today}
             min={twoYearsAgo}
-            className="
-              w-full px-4 py-3 text-base border border-gray-300 rounded-lg
-              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-              transition-all duration-200 hover:border-gray-400
-            "
+            className="w-full px-4 py-3 text-base bg-ctp-surface0 border border-ctp-surface1 text-ctp-text rounded-lg focus:outline-none focus:ring-2 focus:ring-ctp-mauve transition-all duration-200"
             aria-describedby={error ? 'date-error' : undefined}
             aria-invalid={error ? 'true' : 'false'}
           />
         </div>
 
-        {/* To Date */}
         <div>
-          <label htmlFor="date-to" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="date-to" className="block text-sm font-medium mb-2 text-ctp-text">
             End Date
           </label>
           <input
@@ -122,90 +115,43 @@ export default function DateRangePicker() {
             onChange={handleToChange}
             max={today}
             min={dateRange.from}
-            className="
-              w-full px-4 py-3 text-base border border-gray-300 rounded-lg
-              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-              transition-all duration-200 hover:border-gray-400
-            "
+            className="w-full px-4 py-3 text-base bg-ctp-surface0 border border-ctp-surface1 text-ctp-text rounded-lg focus:outline-none focus:ring-2 focus:ring-ctp-mauve transition-all duration-200"
             aria-describedby={error ? 'date-error' : undefined}
             aria-invalid={error ? 'true' : 'false'}
           />
         </div>
       </div>
 
-      {/* Error Message */}
       {error && (
         <div className="animate-in fade-in slide-in-from-top-2 duration-300">
           <InlineError message={error} />
         </div>
       )}
 
-      {/* Quick Presets */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium mb-2 text-ctp-text">
           Quick Presets
         </label>
         <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setPreset('week')}
-            className="
-              px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md
-              hover:bg-gray-50 hover:border-gray-400
-              focus:outline-none focus:ring-2 focus:ring-blue-500
-              transition-colors duration-200
-            "
-          >
-            Last Week
-          </button>
-          <button
-            onClick={() => setPreset('month')}
-            className="
-              px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md
-              hover:bg-gray-50 hover:border-gray-400
-              focus:outline-none focus:ring-2 focus:ring-blue-500
-              transition-colors duration-200
-            "
-          >
-            Last Month
-          </button>
-          <button
-            onClick={() => setPreset('3months')}
-            className="
-              px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md
-              hover:bg-gray-50 hover:border-gray-400
-              focus:outline-none focus:ring-2 focus:ring-blue-500
-              transition-colors duration-200
-            "
-          >
-            Last 3 Months
-          </button>
-          <button
-            onClick={() => setPreset('6months')}
-            className="
-              px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md
-              hover:bg-gray-50 hover:border-gray-400
-              focus:outline-none focus:ring-2 focus:ring-blue-500
-              transition-colors duration-200
-            "
-          >
-            Last 6 Months
-          </button>
-          <button
-            onClick={() => setPreset('year')}
-            className="
-              px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md
-              hover:bg-gray-50 hover:border-gray-400
-              focus:outline-none focus:ring-2 focus:ring-blue-500
-              transition-colors duration-200
-            "
-          >
-            Last Year
-          </button>
+          {[
+            { label: 'Last Week', value: 'week' as const },
+            { label: 'Last Month', value: 'month' as const },
+            { label: 'Last 3 Months', value: '3months' as const },
+            { label: 'Last 6 Months', value: '6months' as const },
+            { label: 'Last Year', value: 'year' as const },
+          ].map(({ label, value }) => (
+            <button
+              key={value}
+              onClick={() => setPreset(value)}
+              className="px-3 py-1.5 text-sm font-medium bg-ctp-surface0 border border-ctp-surface1 text-ctp-subtext0 rounded-md focus:outline-none focus:ring-2 focus:ring-ctp-mauve transition-all duration-200 hover:opacity-80"
+            >
+              {label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Helper Text */}
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-ctp-overlay1">
         Free tier includes 2 years of historical data (2024 onwards). Maximum date range: 2 years.
       </p>
     </div>

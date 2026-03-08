@@ -29,11 +29,11 @@ export default function LoadChartButton() {
         disabled={isDisabled}
         className={`
           inline-flex items-center gap-2 px-6 py-3 rounded-lg font-medium text-base
-          transition-all duration-200 shadow-md
-          ${
-            isDisabled
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
+          transition-all duration-200 shadow-lg active:scale-95 
+          focus:outline-none focus:ring-2 focus:ring-ctp-mauve focus:ring-offset-2 focus:ring-offset-ctp-base
+          ${isDisabled 
+            ? 'bg-ctp-surface0 text-ctp-overlay1 cursor-not-allowed' 
+            : 'bg-gradient-to-br from-ctp-mauve to-ctp-blue text-ctp-base cursor-pointer hover:brightness-110'
           }
         `}
         aria-label={
@@ -66,12 +66,11 @@ export default function LoadChartButton() {
       </button>
 
       {selectedStocks.length > 0 && !isLoading && (
-        <p className="ml-4 text-sm text-gray-500">
+        <p className="ml-4 text-sm text-ctp-overlay1">
           <span className="inline-flex items-center gap-1">
             <svg
-              className="w-4 h-4"
+              className="w-4 h-4 stroke-ctp-blue"
               fill="none"
-              stroke="currentColor"
               viewBox="0 0 24 24"
             >
               <path

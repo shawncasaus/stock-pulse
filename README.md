@@ -20,7 +20,7 @@ An interactive single-page application for charting US stock prices over time. B
 - **State Management**: Zustand
 - **Data Fetching**: SWR with client-side caching
 - **Charting**: Apache ECharts
-- **Styling**: Tailwind CSS
+- **Styling**: Tailwind CSS + Catppuccin Mocha Theme
 - **API**: Polygon.io (free tier)
 
 ## Prerequisites

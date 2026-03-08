@@ -1,6 +1,5 @@
 import type { LoadingSpinnerProps } from '@/types/stock.types';
 
-// Reusable loading spinner with optional text and size variants
 export default function LoadingSpinner({
   text = 'Loading...',
   size = 'md',
@@ -33,12 +32,12 @@ export default function LoadingSpinner({
       aria-busy="true"
     >
       <div
-        className={`${sizeClasses[size]} rounded-full border-gray-200 border-t-blue-600 animate-spin`}
+        className={`${sizeClasses[size]} rounded-full border-transparent border-t-ctp-mauve border-r-ctp-blue border-b-ctp-sapphire animate-spin`}
         aria-hidden="true"
       />
       
       {text && (
-        <span className={`${textSizeClasses[size]} text-gray-600 font-medium`}>
+        <span className={`${textSizeClasses[size]} font-medium text-ctp-text`}>
           {text}
         </span>
       )}
@@ -48,7 +47,6 @@ export default function LoadingSpinner({
   );
 }
 
-// Card-style loading state for full-page or section loading
 export function LoadingCard({
   text = 'Loading...',
   className = '',
@@ -58,22 +56,21 @@ export function LoadingCard({
 }) {
   return (
     <div
-      className={`w-full p-8 bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col items-center justify-center gap-4 ${className}`}
+      className={`w-full p-8 bg-ctp-surface0 rounded-lg border border-ctp-surface1 flex flex-col items-center justify-center gap-4 ${className}`}
       role="status"
       aria-live="polite"
       aria-busy="true"
     >
       <div
-        className="h-12 w-12 rounded-full border-4 border-gray-200 border-t-blue-600 animate-spin"
+        className="h-12 w-12 rounded-full border-4 border-transparent border-t-ctp-mauve border-r-ctp-blue border-b-ctp-sapphire animate-spin"
         aria-hidden="true"
       />
-      <p className="text-sm text-gray-600 font-medium">{text}</p>
+      <p className="text-sm font-medium text-ctp-text">{text}</p>
       <span className="sr-only">{text}</span>
     </div>
   );
 }
 
-// Skeleton loader with pulsing animation
 export function LoadingSkeleton({
   height = 'h-20',
   width = 'w-full',
@@ -87,7 +84,7 @@ export function LoadingSkeleton({
 }) {
   return (
     <div
-      className={`${height} ${width} ${rounded} bg-gray-200 animate-pulse ${className}`}
+      className={`${height} ${width} ${rounded} bg-ctp-surface0 animate-pulse ${className}`}
       role="status"
       aria-label="Loading content"
     >

@@ -6,23 +6,22 @@ import StockChart from '@/components/StockChart';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 shadow-sm">
+    <div className="min-h-screen bg-ctp-base">
+      <header className="bg-ctp-mantle border-b border-ctp-surface0 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center gap-3">
             <div className="shrink-0">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-md">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-lg bg-gradient-to-br from-ctp-mauve to-ctp-blue">
                 <svg
-                  className="w-6 h-6 text-white"
+                  className="w-6 h-6 stroke-ctp-base"
                   fill="none"
-                  stroke="currentColor"
+                  strokeWidth={2.5}
                   viewBox="0 0 24 24"
                   aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    strokeWidth={2}
                     d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
                   />
                 </svg>
@@ -30,10 +29,10 @@ export default function Home() {
             </div>
 
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                StockPulse
+              <h1 className="text-2xl sm:text-3xl font-bold text-ctp-text">
+                Stock<span className="text-ctp-mauve">Pulse</span>
               </h1>
-              <p className="text-sm sm:text-base text-gray-600 mt-0.5">
+              <p className="text-sm sm:text-base mt-0.5 text-ctp-subtext0">
                 Interactive Stock Price Charting for US Equities
               </p>
             </div>
@@ -42,9 +41,9 @@ export default function Home() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-6">
-            Chart Controls
+        <div className="bg-ctp-mantle rounded-xl shadow-2xl border border-ctp-surface0 p-6 mb-8">
+          <h2 className="text-lg font-semibold mb-6 text-ctp-text">
+            <span className="text-ctp-blue">▸</span> Chart Controls
           </h2>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -64,21 +63,21 @@ export default function Home() {
 
         <LoadChartButton />
 
-        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-6">
-            Price Chart
+        <div className="bg-ctp-mantle rounded-xl shadow-2xl border border-ctp-surface0 p-6">
+          <h2 className="text-lg font-semibold mb-6 text-ctp-text">
+            <span className="text-ctp-sapphire">▸</span> Price Chart
           </h2>
           <StockChart />
         </div>
 
-        <div className="mt-8 text-center text-sm text-gray-500">
+        <div className="mt-8 text-center text-sm text-ctp-overlay1">
           <p>
             Data provided by{' '}
             <a
               href="https://polygon.io"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-800 underline"
+              className="text-ctp-blue underline transition-colors hover:opacity-80"
             >
               Polygon.io
             </a>
