@@ -1,7 +1,7 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import type { PolygonTickerSearchResponse, Stock } from '@/types/stock.types';
 import { rateLimiter } from '@/lib/rateLimit';
-import { createErrorResponse, createSuccessResponse } from '@/lib/apiHelpers';
+import { createErrorResponse } from '@/lib/apiHelpers';
 import { POLYGON_BASE_URL, API_LIMITS } from '@/lib/constants';
 
 /** Validates that the API key is configured */
@@ -122,9 +122,20 @@ export async function GET(request: NextRequest) {
     );
     
     const results = transformResults(polygonData);
-    return createSuccessResponse(
-      { data: results, results },
-      'public, s-maxage=3600, stale-while-revalidate=86400'
+    
+    // Return response with both data and results fields for StockSearchResponse
+    return NextResponse.json(
+      {
+        success: true,
+        data: results,
+        results: results,
+      },
+      {
+        status: 200,
+        headers: {
+          'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+        },
+      }
     );
 
   } catch (error) {

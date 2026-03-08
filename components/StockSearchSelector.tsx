@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from 'react';
 import { useStockStore } from '@/store/useStockStore';
 import { useStockSearch } from '@/hooks/useStockSearch';
 import { MAX_SELECTED_STOCKS } from '@/lib/constants';
+import { InlineError } from './ErrorMessage';
+import { SearchEmptyState } from './EmptyState';
 
 export default function StockSearchSelector() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -170,15 +172,13 @@ export default function StockSearchSelector() {
             className="absolute z-10 w-full mt-2 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-y-auto"
           >
             {error && (
-              <div className="p-4 text-sm text-red-600 bg-red-50">
-                Error loading results. Please try again.
+              <div className="p-4">
+                <InlineError message="Error loading results. Please try again." />
               </div>
             )}
 
             {!error && !isLoading && !hasResults && (
-              <div className="p-4 text-sm text-gray-500 text-center">
-                No stocks found for &quot;{searchQuery}&quot;
-              </div>
+              <SearchEmptyState query={searchQuery} />
             )}
 
             {!error && hasResults && (
