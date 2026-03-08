@@ -1,57 +1,54 @@
-import { useState, useEffect } from 'react';
-import { useDebounce } from './useDebounce';
-import type { Stock, StockSearchResponse } from '@/types/stock.types';
-
-const DEBOUNCE_DELAY = 300;
+import { useState, useEffect, useMemo } from 'react';
+import popularStocks from '@/data/popular-stocks.json';
+import type { Stock } from '@/types/stock.types';
 
 /**
- * Searches for stock tickers with debounced input.
- * Returns matching stocks from the Polygon API.
+ * Searches for stock tickers using a static list of popular US stocks.
+ * Filters locally for instant results without API calls.
  */
 export function useStockSearch(query: string) {
   const [results, setResults] = useState<Stock[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const debouncedQuery = useDebounce(query, DEBOUNCE_DELAY);
+  const allStocks = useMemo(() => popularStocks as Stock[], []);
 
   useEffect(() => {
-    if (!debouncedQuery || debouncedQuery.trim().length === 0) {
-      setResults([]);
-      setIsLoading(false);
-      setError(null);
-      return;
-    }
+    setIsLoading(true);
+    setError(null);
 
-    const searchStocks = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const url = `/api/stocks/search?query=${encodeURIComponent(debouncedQuery)}`;
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-          throw new Error(`Search failed: ${response.statusText}`);
-        }
-
-        const data: StockSearchResponse = await response.json();
-
-        if (!data.success) {
-          throw new Error(data.error || 'Search failed');
-        }
-
-        setResults(data.results || data.data || []);
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error('Unknown error'));
+    try {
+      if (!query || query.trim().length === 0) {
         setResults([]);
-      } finally {
-        setIsLoading(false);
+        return;
       }
-    };
 
-    searchStocks();
-  }, [debouncedQuery]);
+      const normalizedQuery = query.trim().toUpperCase();
+      
+      const filtered = allStocks.filter((stock) => {
+        const symbolMatch = stock.symbol.toUpperCase().includes(normalizedQuery);
+        const nameMatch = stock.name.toLowerCase().includes(query.trim().toLowerCase());
+        return symbolMatch || nameMatch;
+      });
+
+      const sorted = filtered.sort((a, b) => {
+        const aStartsWithSymbol = a.symbol.toUpperCase().startsWith(normalizedQuery);
+        const bStartsWithSymbol = b.symbol.toUpperCase().startsWith(normalizedQuery);
+        
+        if (aStartsWithSymbol && !bStartsWithSymbol) return -1;
+        if (!aStartsWithSymbol && bStartsWithSymbol) return 1;
+        
+        return a.symbol.localeCompare(b.symbol);
+      });
+
+      setResults(sorted.slice(0, 50));
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Search failed'));
+      setResults([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [query, allStocks]);
 
   return { results, isLoading, error };
 }

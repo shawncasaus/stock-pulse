@@ -67,7 +67,7 @@ export function useChartOptions(
           
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           params.forEach((param: any) => {
-            if (param.value !== null) {
+            if (param.value != null && typeof param.value === 'number') {
               content += `
                 <div style="display: flex; align-items: center; gap: 8px;">
                   <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: ${param.color};"></span>

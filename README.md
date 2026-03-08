@@ -8,8 +8,8 @@ An interactive single-page application for charting US stock prices over time. B
 - **Interactive Charts**: View time series data with zoom, pan, and hover interactions
 - **Price Type Toggle**: Switch between Open, High, Low, and Close prices
 - **Date Range Selection**: Customize the time period for analysis
-- **Real-time Search**: Debounced search with instant results
-- **Rate Limiting**: Respects Polygon.io free tier limits (5 API calls/minute)
+- **Instant Search**: Local filtering of 300+ popular stocks for instant results
+- **Rate Limiting**: Respects Polygon.io free tier limits (5 API calls/minute) for chart data only
 
 ## Tech Stack
 
@@ -71,20 +71,24 @@ stock-pulse/
 ├── app/
 │   ├── api/
 │   │   └── stocks/
-│   │       ├── search/route.ts       # Stock ticker search endpoint
 │   │       └── aggregates/route.ts   # Historical price data endpoint
 │   ├── layout.tsx                    # Root layout with metadata
 │   ├── page.tsx                      # Main application page
 │   └── globals.css                   # Global styles
-├── components/                       # React components (to be built)
+├── components/                       # React UI components
+├── data/
+│   └── popular-stocks.json          # Static list of 300+ popular stocks
 ├── hooks/
 │   ├── useStockData.ts              # SWR hook for fetching stock data
-│   ├── useStockSearch.ts            # Hook for searching stocks
+│   ├── useStockSearch.ts            # Hook for local stock search
 │   ├── useDebounce.ts               # Generic debounce hook
 │   └── useChartOptions.ts           # ECharts configuration generator
 ├── lib/
 │   ├── polygonClient.ts             # Polygon API client wrapper
-│   └── rateLimit.ts                 # Rate limiter (5 calls/min)
+│   ├── rateLimit.ts                 # Rate limiter (5 calls/min)
+│   ├── constants.ts                 # Application constants
+│   ├── apiHelpers.ts                # API response utilities
+│   └── validators.ts                # Input validation utilities
 ├── store/
 │   └── useStockStore.ts             # Zustand global state store
 ├── types/
@@ -94,34 +98,20 @@ stock-pulse/
 └── __tests__/                       # Test files (to be built)
 ```
 
+## Architecture Highlights
+
+### Hybrid Search Approach
+
+The application uses a **hybrid approach** to optimize API usage:
+
+1. **Stock Search**: Local filtering of a static JSON file containing 300+ popular US stocks (AAPL, MSFT, GOOGL, etc.) - **no API calls**
+2. **Chart Data**: Auto-fetches from Polygon.io when stocks are selected - **API calls only when needed**
+3. **Rate Limiting**: Sliding window rate limiter protects the aggregates endpoint (5 calls/min)
+4. **Client Caching**: SWR provides automatic client-side caching and revalidation
+
+This design ensures instant search results while respecting the free tier API limits.
+
 ## API Endpoints
-
-### GET `/api/stocks/search`
-
-Search for US stock tickers by symbol or company name.
-
-**Query Parameters:**
-- `query` (required): Search term (e.g., "AAPL", "Apple")
-- `limit` (optional): Max results (default: 10, max: 50)
-
-**Example Request:**
-```
-GET /api/stocks/search?query=apple&limit=10
-```
-
-**Example Response:**
-```json
-{
-  "success": true,
-  "results": [
-    {
-      "symbol": "AAPL",
-      "name": "Apple Inc.",
-      "exchange": "NASDAQ"
-    }
-  ]
-}
-```
 
 ### GET `/api/stocks/aggregates`
 
