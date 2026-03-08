@@ -61,22 +61,78 @@ npm run build
 npm start
 ```
 
-## Running Tests
+## Testing
 
-The test suite uses Jest and React Testing Library:
+The application uses Jest, React Testing Library, and MSW for testing.
+
+### Running Tests
 
 ```bash
-# Run all tests
-npm test
-
-# Run tests in watch mode
-npm test -- --watch
-
-# Generate coverage report
-npm test -- --coverage
+npm test                    # Run all tests
+npm run test:watch          # Run tests in watch mode
+npm run test:coverage       # Generate coverage report
+npm run test:ci             # Run tests in CI mode
 ```
 
-Tests are located in the `__tests__/` directory and cover components, hooks, utilities, and stores.
+### Test Structure
+
+```
+tests/
+├── components/        # Component tests
+├── hooks/            # Hook tests
+├── store/            # Store tests
+├── utils/            # Utility tests
+├── fixtures/         # Mock data and test fixtures
+├── mocks/            # MSW API mock handlers
+└── utils/            # Test utilities and helpers
+```
+
+### Writing Tests
+
+**Component tests** use the custom render function:
+
+```typescript
+import { render, screen } from '@/tests/utils/test-utils'
+
+test('renders component', () => {
+  render(<MyComponent />)
+  expect(screen.getByText('Hello')).toBeInTheDocument()
+})
+```
+
+**Hook tests** use renderHook:
+
+```typescript
+import { renderHook } from '@testing-library/react'
+
+test('returns expected value', () => {
+  const { result } = renderHook(() => useMyHook())
+  expect(result.current).toBeDefined()
+})
+```
+
+**API mocking** via MSW:
+
+```typescript
+import { server } from '@/tests/mocks/server'
+import { errorHandlers } from '@/tests/mocks/handlers'
+
+test('handles API errors', () => {
+  server.use(...errorHandlers)
+  // Test code
+})
+```
+
+### Coverage Goals
+
+Target: 80% coverage for branches, functions, lines, and statements. Coverage reports are saved to `coverage/`.
+
+### Available Mocks
+
+- ResizeObserver (for chart components)
+- matchMedia (for responsive design)
+- localStorage (for persistent state)
+- API routes (via MSW)
 
 ## Project Structure
 
@@ -242,7 +298,7 @@ npm run lint         # Run ESLint
 2. Create components in `components/`
 3. Add hooks for data logic in `hooks/`
 4. Update store if new state is needed
-5. Write tests in `__tests__/`
+5. Write tests in `tests/`
 
 ## Constraints and Limitations
 
