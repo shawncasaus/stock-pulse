@@ -18,18 +18,20 @@ class RateLimiter {
 
   /** Executes a request function while respecting rate limits */
   async executeRequest<T>(fn: () => Promise<T>): Promise<T> {
-    await this.waitIfNeeded();
+    const waitTime = await this.waitIfNeeded();
     this.requestTimestamps.push(Date.now());
     return await fn();
   }
 
-  /** Waits if rate limit has been reached */
-  private async waitIfNeeded(): Promise<void> {
+  /** Waits if rate limit has been reached and returns total wait time */
+  private async waitIfNeeded(): Promise<number> {
+    let totalWaitTime = 0;
+    
     while (true) {
       this.cleanupOldTimestamps();
 
       if (this.requestTimestamps.length < this.maxRequests) {
-        return;
+        return totalWaitTime;
       }
 
       const oldestRequest = this.requestTimestamps[0];
@@ -39,6 +41,7 @@ class RateLimiter {
 
       if (waitTime > 0) {
         console.log(`[RateLimiter] Rate limit reached. Waiting ${waitTime}ms before next request.`);
+        totalWaitTime += waitTime;
         await this.sleep(waitTime);
       }
     }

@@ -1,11 +1,26 @@
 import useSWR from 'swr';
 import type { StockDataMap, StockDataResponse, UseStockDataReturn } from '@/types/stock.types';
+import { useToastStore } from '@/store/useToastStore';
 
 const CACHE_TIME = 5 * 60 * 1000; // 5 minutes
 
-/** Fetcher function for SWR */
+/** Fetcher function for SWR with rate limit detection */
 async function fetcher(url: string): Promise<StockDataMap> {
   const response = await fetch(url);
+
+  if (response.status === 429) {
+    const rateLimitWait = response.headers.get('X-Rate-Limit-Wait');
+    if (rateLimitWait) {
+      const waitSeconds = parseInt(rateLimitWait, 10);
+      if (waitSeconds > 0) {
+        useToastStore.getState().showRateLimitToast(waitSeconds);
+        
+        await new Promise(resolve => setTimeout(resolve, waitSeconds * 1000));
+        
+        return fetcher(url);
+      }
+    }
+  }
 
   if (!response.ok) {
     throw new Error(`Failed to fetch: ${response.statusText}`);
@@ -50,7 +65,7 @@ export function useStockData(
 
   return {
     data,
-    isLoading: (!error && !data && shouldFetchChart && hasParams) ? true : false,
+    isLoading: (shouldFetchChart && hasParams && (!data || isValidating)) ? true : false,
     error: error || undefined,
     isValidating,
   };

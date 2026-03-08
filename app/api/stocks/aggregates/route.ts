@@ -77,7 +77,21 @@ export async function GET(request: NextRequest) {
       return createErrorResponse(params.error, 400);
     }
 
+    const waitTimeMs = rateLimiter.getTimeUntilNextSlot();
+    
+    if (waitTimeMs > 0) {
+      const waitSeconds = Math.ceil(waitTimeMs / 1000);
+      const response = createErrorResponse(
+        `Rate limit reached. Request will be processed in ${waitSeconds} seconds.`,
+        429
+      );
+      response.headers.set('X-Rate-Limit-Wait', waitSeconds.toString());
+      response.headers.set('Retry-After', waitSeconds.toString());
+      return response;
+    }
+
     const stockData = await fetchStockData(params.symbols, params.from, params.to);
+    
     return createSuccessResponse(
       stockData,
       'public, s-maxage=300, stale-while-revalidate=600'

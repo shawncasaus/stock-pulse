@@ -10,6 +10,8 @@ An interactive single-page application for charting US stock prices over time. B
 - **Date Range Selection**: Customize the time period for analysis
 - **Instant Search**: Local filtering of 328 popular stocks for instant results
 - **Manual Chart Loading**: Explicit "Load Chart" button to control API usage
+- **Rate Limit Notifications**: Real-time countdown notifications when API limit is reached
+- **Smart Loading States**: Chart stays in loading state during rate-limited waits
 - **Rate Limiting**: Respects Polygon.io free tier limits (5 API calls/minute) for chart data
 
 ## Tech Stack
