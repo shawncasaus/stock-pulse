@@ -1,36 +1,30 @@
 # StockPulse
 
-An interactive single-page application for charting US stock prices over time. Built for fund managers to analyze historical price data and compare multiple stocks simultaneously.
+A web application for visualizing and analyzing US equity price data. Select up to three stocks, choose a date range and price type, then view an interactive time series chart with zoom and pan capabilities.
 
-## Features
+## Overview
 
-- **Stock Search**: Search and select up to 3 US stocks by ticker symbol or company name
-- **Interactive Charts**: View time series data with zoom, pan, and hover interactions
-- **Price Type Toggle**: Switch between Open, High, Low, and Close prices
-- **Date Range Selection**: Customize the time period for analysis
-- **Instant Search**: Local filtering of 328 popular stocks for instant results
-- **Manual Chart Loading**: Explicit "Load Chart" button to control API usage
-- **Rate Limit Notifications**: Real-time countdown notifications when API limit is reached
-- **Smart Loading States**: Chart stays in loading state during rate-limited waits
-- **Rate Limiting**: Respects Polygon.io free tier limits (5 API calls/minute) for chart data
+StockPulse provides fund managers and traders with a streamlined interface for comparing historical stock prices. The application fetches data from Polygon.io's market data API and renders it using Apache ECharts for smooth, interactive visualizations.
 
-## Tech Stack
+Key capabilities:
+- Search 328+ popular US stocks by symbol or company name
+- Compare up to 3 stocks simultaneously on a single chart
+- Toggle between Open, High, Low, and Close price types
+- Select custom date ranges (up to 2 years of historical data)
+- Zoom, pan, and hover interactions on the chart
+- Automatic rate limiting and caching to respect API quotas
 
-- **Framework**: Next.js 15 (App Router) with TypeScript
-- **State Management**: Zustand
-- **Data Fetching**: SWR with client-side caching
-- **Charting**: Apache ECharts
-- **Styling**: Tailwind CSS + Catppuccin Mocha Theme
-- **API**: Polygon.io (free tier)
+## Quick Start
 
-## Prerequisites
+### Prerequisites
 
-- Node.js 18+ and npm
-- Polygon.io API key (free tier) - [Sign up here](https://polygon.io)
+- Node.js 18 or higher
+- npm or yarn package manager
+- A free Polygon.io API key (sign up at https://polygon.io)
 
-## Getting Started
+### Installation
 
-### 1. Clone and Install
+1. Clone the repository and install dependencies:
 
 ```bash
 git clone <repository-url>
@@ -38,277 +32,276 @@ cd stock-pulse
 npm install
 ```
 
-### 2. Configure Environment Variables
-
-Create a `.env.local` file in the root directory:
+2. Configure your API key:
 
 ```bash
 cp .env.example .env.local
 ```
 
-Add your Polygon.io API key:
+Edit `.env.local` and add your Polygon.io API key:
 
 ```
-POLYGON_API_KEY=your_api_key_here
+POLYGON_API_KEY=your_actual_key_here
 ```
 
-### 3. Run Development Server
+3. Start the development server:
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+The application will be available at http://localhost:3000
 
-### 4. Build for Production
+### Production Build
+
+To create an optimized production build:
 
 ```bash
 npm run build
 npm start
 ```
 
+## Running Tests
+
+The test suite uses Jest and React Testing Library:
+
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm test -- --watch
+
+# Generate coverage report
+npm test -- --coverage
+```
+
+Tests are located in the `__tests__/` directory and cover components, hooks, utilities, and stores.
+
 ## Project Structure
 
 ```
 stock-pulse/
 ├── app/
-│   ├── api/
-│   │   └── stocks/
-│   │       └── aggregates/route.ts   # Historical price data endpoint
-│   ├── layout.tsx                    # Root layout with metadata
-│   ├── page.tsx                      # Main application page
-│   └── globals.css                   # Global styles
-├── components/                       # React UI components
+│   ├── api/stocks/aggregates/route.ts    # API route for stock data
+│   ├── globals.css                       # Global styles and theme
+│   ├── layout.tsx                        # Root layout
+│   └── page.tsx                          # Main page
+├── components/
+│   ├── DateRangePicker.tsx               # Date range selector
+│   ├── EmptyState.tsx                    # Empty state displays
+│   ├── ErrorMessage.tsx                  # Error displays
+│   ├── LoadChartButton.tsx               # Chart load trigger
+│   ├── LoadingSpinner.tsx                # Loading indicators
+│   ├── PriceTypeToggle.tsx               # Price type selector
+│   ├── RateLimitToast.tsx                # Rate limit notifications
+│   ├── StockChart.tsx                    # Main chart component
+│   ├── StockSearchSelector.tsx           # Stock search and selection
+│   ├── ThemeToggle.tsx                   # Light/dark theme toggle
+│   └── ToastContainer.tsx                # Toast notification container
 ├── data/
-│   └── popular-stocks.json          # Static list of 300+ popular stocks
+│   └── popular-stocks.json               # Static stock list
 ├── hooks/
-│   ├── useStockData.ts              # SWR hook for fetching stock data
-│   ├── useStockSearch.ts            # Hook for local stock search
-│   ├── useDebounce.ts               # Generic debounce hook
-│   └── useChartOptions.ts           # ECharts configuration generator
+│   ├── useChartOptions.ts                # ECharts configuration
+│   ├── useDebounce.ts                    # Debounce utility
+│   ├── useStockData.ts                   # Data fetching with SWR
+│   └── useStockSearch.ts                 # Local stock search
 ├── lib/
-│   ├── polygonClient.ts             # Polygon API client wrapper
-│   ├── rateLimit.ts                 # Rate limiter (5 calls/min)
-│   ├── constants.ts                 # Application constants
-│   ├── apiHelpers.ts                # API response utilities
-│   └── validators.ts                # Input validation utilities
+│   ├── apiHelpers.ts                     # API response utilities
+│   ├── constants.ts                      # Application constants
+│   ├── polygonClient.ts                  # Polygon API client
+│   ├── rateLimit.ts                      # Rate limiter
+│   └── validators.ts                     # Input validators
 ├── store/
-│   └── useStockStore.ts             # Zustand global state store
+│   ├── useStockStore.ts                  # Application state
+│   ├── useThemeStore.ts                  # Theme state
+│   └── useToastStore.ts                  # Toast notification state
 ├── types/
-│   └── stock.types.ts               # TypeScript type definitions
-├── utils/
-│   └── dataTransform.ts             # Data transformation utilities
-└── __tests__/                       # Test files (to be built)
+│   └── stock.types.ts                    # TypeScript definitions
+└── utils/
+    └── dataTransform.ts                  # Data transformation utilities
 ```
 
-## Architecture Highlights
+## Architecture
 
-### Optimized API Usage Strategy
+### Data Flow
 
-The application uses multiple strategies to minimize API usage and respect rate limits:
+1. User searches for stocks using the search selector
+2. Search filters the local `popular-stocks.json` file (no API call)
+3. User selects up to 3 stocks, chooses date range and price type
+4. User clicks "Load Chart" button
+5. API route fetches data from Polygon.io (rate-limited)
+6. SWR caches the response for 5 minutes
+7. Data is transformed and rendered in ECharts
 
-1. **Local Stock Search**: Static JSON file with 328 popular US stocks - **zero API calls for search**
-   - Instant autocomplete results (< 50ms)
-   - Includes major companies, ETFs, and international stocks
-   - Case-insensitive symbol and name matching
+### API Usage Optimization
 
-2. **Manual Chart Loading**: Explicit "Load Chart" button prevents unnecessary API calls
-   - Users select stocks without triggering fetches
-   - Single API call fetches all selected stocks at once
-   - Visual feedback shows API usage cost (1 call per load)
+The application is designed to minimize API calls:
 
-3. **Rate Limiting**: Sliding window limiter protects the aggregates endpoint
-   - Respects Polygon.io free tier limit (5 calls/min)
-   - Automatic queuing when limit approached
-   - Prevents accidental rate limit violations
+- Stock search uses a local JSON file (328 stocks) for instant results
+- Chart data is only fetched when the user explicitly clicks "Load Chart"
+- A sliding window rate limiter prevents exceeding the 5 calls/minute quota
+- SWR provides client-side caching with 5-minute TTL
+- Rate limit notifications inform users when requests are queued
 
-4. **Client-Side Caching**: SWR provides intelligent caching
-   - 5-minute cache for fetched data
-   - Reduces redundant API calls
-   - Instant display for recently viewed data
+### State Management
 
-This multi-layered approach ensures a responsive user experience while staying well within API limits.
+The application uses three Zustand stores:
 
-## API Endpoints
+- `useStockStore`: Selected stocks, date range, price type, and fetch trigger
+- `useThemeStore`: Current theme (light/dark) with localStorage persistence
+- `useToastStore`: Toast notification state for rate limit alerts
 
-### GET `/api/stocks/aggregates`
+## API Reference
 
-Fetch historical daily price data (OHLCV) for multiple stocks.
+### GET /api/stocks/aggregates
 
-**Query Parameters:**
-- `symbols` (required): Comma-separated ticker symbols (max 3)
-- `from` (required): Start date in YYYY-MM-DD format
-- `to` (required): End date in YYYY-MM-DD format
+Fetches historical aggregate data for one or more stock symbols.
 
-**Example Request:**
-```
-GET /api/stocks/aggregates?symbols=AAPL,MSFT,TSLA&from=2024-01-01&to=2024-12-31
-```
+**Query Parameters**
 
-**Example Response:**
-```json
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| symbols | string | Yes | Comma-separated ticker symbols (max 3) |
+| from | string | Yes | Start date in YYYY-MM-DD format |
+| to | string | Yes | End date in YYYY-MM-DD format |
+
+**Response Format**
+
+```typescript
 {
-  "success": true,
-  "data": {
-    "AAPL": [
-      {
-        "t": 1704153600000,
-        "o": 185.23,
-        "h": 186.95,
-        "l": 184.50,
-        "c": 186.40,
-        "v": 45678900
-      }
-    ],
-    "MSFT": [...],
-    "TSLA": [...]
-  }
+  success: boolean;
+  data?: {
+    [symbol: string]: Array<{
+      t: number;    // Timestamp (milliseconds)
+      o: number;    // Open price
+      h: number;    // High price
+      l: number;    // Low price
+      c: number;    // Close price
+      v: number;    // Volume
+    }>;
+  };
+  error?: string;
 }
 ```
 
-**Response Fields:**
-- `t`: Timestamp (milliseconds)
-- `o`: Open price
-- `h`: High price
-- `l`: Low price
-- `c`: Close price
-- `v`: Trading volume
+**Error Codes**
 
-## State Management
+| Code | Description |
+|------|-------------|
+| 400 | Invalid request parameters |
+| 401 | Invalid API key |
+| 403 | Date range not available on free tier |
+| 429 | Rate limit exceeded |
+| 500 | Internal server error |
 
-The application uses Zustand for global state management:
+## Technology Stack
 
-```typescript
-// Access store in any component
-import { useStockStore } from '@/store/useStockStore';
+- **Framework**: Next.js 15 with App Router and Server Components
+- **Language**: TypeScript 5
+- **Styling**: Tailwind CSS 4 with Catppuccin theme
+- **State**: Zustand with devtools and persist middleware
+- **Data Fetching**: SWR for client-side caching and revalidation
+- **Charting**: Apache ECharts via echarts-for-react
+- **Date Utilities**: date-fns
+- **Testing**: Jest, React Testing Library, MSW (planned)
+- **API**: Polygon.io REST API (free tier)
 
-const { selectedStocks, dateRange, priceType, addStock, removeStock } = useStockStore();
+## Development
+
+### Environment Variables
+
+Required variables in `.env.local`:
+
+```
+POLYGON_API_KEY=your_polygon_io_api_key
 ```
 
-**Store State:**
-- `selectedStocks`: Array of selected ticker symbols (max 3)
-- `dateRange`: Object with `from` and `to` dates
-- `priceType`: One of 'open' | 'high' | 'low' | 'close'
-
-**Store Actions:**
-- `addStock(symbol)`: Add a stock (validates max 3 and no duplicates)
-- `removeStock(symbol)`: Remove a stock
-- `setStocks(symbols)`: Set all stocks at once
-- `setDateRange(range)`: Update date range
-- `setPriceType(type)`: Change price type
-- `clearStocks()`: Clear all selections
-- `canAddStock()`: Check if another stock can be added
-- `hasStocks()`: Check if any stocks are selected
-
-## Data Fetching
-
-The app uses SWR for efficient data fetching with caching:
-
-```typescript
-import { useStockData } from '@/hooks/useStockData';
-
-const { data, isLoading, error } = useStockData(
-  ['AAPL', 'MSFT'],
-  '2024-01-01',
-  '2024-12-31'
-);
-```
-
-**Features:**
-- 5-minute client-side cache
-- Automatic deduplication
-- No unnecessary refetching
-- Works seamlessly with Zustand store
-
-## Rate Limiting
-
-All Polygon API calls go through a rate limiter that enforces the 5 calls/minute limit:
-
-```typescript
-// Automatically handled in API routes
-const data = await rateLimiter.executeRequest(() =>
-  fetchPolygonAggregates(symbol, from, to)
-);
-```
-
-The rate limiter uses a sliding window algorithm and queues requests that exceed the limit.
-
-## Key Constraints
-
-- **Maximum 3 stocks** can be selected simultaneously
-- **5 API calls per minute** (Polygon free tier limit)
-- **US stocks only** from major exchanges
-- **Date format**: YYYY-MM-DD required
-- **Free tier data**: 2 years of historical data available
-
-## Development Notes
-
-### Adding New API Routes
-
-All API routes should:
-1. Use the rate limiter for Polygon API calls
-2. Include proper validation
-3. Return consistent response format with `success` and `error` fields
-4. Handle all error cases (404, 429, 401, 500)
-
-### State Updates
-
-Use Zustand actions instead of direct state mutation:
-
-```typescript
-// ✓ Good
-addStock('AAPL');
-
-// ✗ Bad - don't mutate state directly
-selectedStocks.push('AAPL');
-```
-
-### Type Safety
-
-All API responses and data structures are fully typed. Import types from `@/types/stock.types`:
-
-```typescript
-import type { Stock, PolygonBar, StockDataMap } from '@/types/stock.types';
-```
-
-## Testing
-
-Tests will be located in the `__tests__/` directory using Jest and React Testing Library.
+### Available Scripts
 
 ```bash
-npm test              # Run tests
-npm test -- --watch   # Run in watch mode
-npm test -- --coverage # Generate coverage report
+npm run dev          # Start development server (port 3000)
+npm run build        # Create production build
+npm start            # Start production server
+npm test             # Run test suite
+npm run lint         # Run ESLint
 ```
+
+### Code Organization
+
+- **Components**: React components for UI elements
+- **Hooks**: Custom React hooks for data fetching and state
+- **Lib**: Utility functions and external service clients
+- **Store**: Zustand state stores
+- **Types**: TypeScript type definitions
+- **Utils**: Data transformation and helper functions
+
+### Adding New Features
+
+1. Define TypeScript types in `types/stock.types.ts`
+2. Create components in `components/`
+3. Add hooks for data logic in `hooks/`
+4. Update store if new state is needed
+5. Write tests in `__tests__/`
+
+## Constraints and Limitations
+
+- Maximum of 3 stocks can be selected at once
+- Polygon.io free tier allows 5 API calls per minute
+- Historical data limited to past 2 years on free tier
+- Only US stocks from major exchanges (NASDAQ, NYSE, ARCA, etc.)
+- Date pickers restricted to prevent future dates and out-of-range selections
+
+## Performance Considerations
+
+The application implements several optimizations:
+
+- Stock search is entirely client-side (328 stocks cached locally)
+- Chart data fetches are explicit user actions (via "Load Chart" button)
+- SWR deduplicates identical requests automatically
+- Rate limiter queues requests to prevent 429 errors
+- Dynamic imports for ECharts reduce initial bundle size
+- Static stock list is only 26KB
 
 ## Troubleshooting
 
-### Rate Limit Errors
-If you see "Rate limit exceeded" errors:
-- Wait 1 minute between bursts of requests
-- The rate limiter automatically queues requests
-- Client-side cache (SWR) reduces API calls
+### Rate Limit Issues
 
-### Missing Data
-If stock data is empty:
-- Verify the ticker symbol is correct
-- Check the date range is within the last 2 years (free tier limit)
-- Ensure markets were open on those dates
+If you encounter rate limit errors:
+- Wait 60 seconds before making additional requests
+- The rate limiter will automatically queue and process requests
+- Check the rate limit notification toast for countdown information
 
-### API Key Issues
-If you see authentication errors:
-- Verify `POLYGON_API_KEY` is set in `.env.local`
-- Check the API key is valid at [polygon.io](https://polygon.io)
-- Restart the development server after changing `.env.local`
+### Missing or Invalid Data
+
+If stock data appears empty or incorrect:
+- Verify the ticker symbol exists in the Polygon.io database
+- Ensure the date range falls within the past 2 years
+- Check that the selected dates are trading days (markets closed on weekends/holidays)
+- Review the browser console for detailed error messages
+
+### API Key Problems
+
+If authentication fails:
+- Confirm `POLYGON_API_KEY` is set correctly in `.env.local`
+- Verify the API key is active at https://polygon.io/dashboard
+- Restart the development server after modifying environment variables
+
+### Build or Type Errors
+
+If TypeScript compilation fails:
+- Delete the `.next` directory and rebuild
+- Run `npx tsc --noEmit` to check for type errors
+- Ensure all dependencies are installed correctly
 
 ## Resources
 
-- [Polygon.io API Documentation](https://polygon.io/docs/stocks)
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Zustand Documentation](https://zustand-demo.pmnd.rs/)
-- [Apache ECharts Documentation](https://echarts.apache.org/en/index.html)
-- [SWR Documentation](https://swr.vercel.app/)
+- Polygon.io API Documentation: https://polygon.io/docs/stocks
+- Next.js App Router: https://nextjs.org/docs/app
+- ECharts Documentation: https://echarts.apache.org/en/option.html
+- Zustand Guide: https://zustand-demo.pmnd.rs/
+- SWR Documentation: https://swr.vercel.app/
 
 ## License
 
-This project is for educational/assignment purposes.
+This project was created for interview and assessment purposes.
