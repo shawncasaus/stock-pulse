@@ -21,6 +21,7 @@ export const useStockStore = create<StockStore>()(
       selectedStocks: [],
       dateRange: getDefaultDateRange(),
       priceType: 'close',
+      shouldFetchChart: false,
 
       addStock: (symbol: string) => {
         const { selectedStocks } = get();
@@ -67,6 +68,14 @@ export const useStockStore = create<StockStore>()(
 
       hasStocks: () => {
         return get().selectedStocks.length > 0;
+      },
+
+      triggerFetch: () => {
+        set({ shouldFetchChart: true });
+      },
+
+      resetFetch: () => {
+        set({ shouldFetchChart: false });
       },
     }),
     { name: 'StockStore' }

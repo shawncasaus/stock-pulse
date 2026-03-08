@@ -1,6 +1,7 @@
 import StockSearchSelector from '@/components/StockSearchSelector';
 import DateRangePicker from '@/components/DateRangePicker';
 import PriceTypeToggle from '@/components/PriceTypeToggle';
+import LoadChartButton from '@/components/LoadChartButton';
 import StockChart from '@/components/StockChart';
 
 export default function Home() {
@@ -60,6 +61,8 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        <LoadChartButton />
 
         <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-6">

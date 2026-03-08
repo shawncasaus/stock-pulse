@@ -22,33 +22,35 @@ async function fetcher(url: string): Promise<StockDataMap> {
 
 /**
  * Fetches stock aggregate data using SWR with caching.
- * Only fetches when symbols array is not empty.
+ * Only fetches when explicitly triggered via shouldFetchChart flag.
  */
 export function useStockData(
   symbols: string[],
   from: string,
-  to: string
+  to: string,
+  shouldFetchChart: boolean
 ): UseStockDataReturn {
-  const shouldFetch = symbols.length > 0 && from && to;
+  const hasParams = symbols.length > 0 && from && to;
   
-  const url = shouldFetch
+  const url = hasParams
     ? `/api/stocks/aggregates?symbols=${symbols.join(',')}&from=${from}&to=${to}`
     : null;
 
   const { data, error, isValidating } = useSWR<StockDataMap>(
-    url,
+    shouldFetchChart ? url : null,
     fetcher,
     {
       dedupingInterval: CACHE_TIME,
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       shouldRetryOnError: false,
+      keepPreviousData: true,
     }
   );
 
   return {
     data,
-    isLoading: (!error && !data && shouldFetch) ? true : false,
+    isLoading: (!error && !data && shouldFetchChart && hasParams) ? true : false,
     error: error || undefined,
     isValidating,
   };

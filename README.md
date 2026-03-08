@@ -8,8 +8,9 @@ An interactive single-page application for charting US stock prices over time. B
 - **Interactive Charts**: View time series data with zoom, pan, and hover interactions
 - **Price Type Toggle**: Switch between Open, High, Low, and Close prices
 - **Date Range Selection**: Customize the time period for analysis
-- **Instant Search**: Local filtering of 300+ popular stocks for instant results
-- **Rate Limiting**: Respects Polygon.io free tier limits (5 API calls/minute) for chart data only
+- **Instant Search**: Local filtering of 328 popular stocks for instant results
+- **Manual Chart Loading**: Explicit "Load Chart" button to control API usage
+- **Rate Limiting**: Respects Polygon.io free tier limits (5 API calls/minute) for chart data
 
 ## Tech Stack
 
@@ -100,16 +101,31 @@ stock-pulse/
 
 ## Architecture Highlights
 
-### Hybrid Search Approach
+### Optimized API Usage Strategy
 
-The application uses a **hybrid approach** to optimize API usage:
+The application uses multiple strategies to minimize API usage and respect rate limits:
 
-1. **Stock Search**: Local filtering of a static JSON file containing 300+ popular US stocks (AAPL, MSFT, GOOGL, etc.) - **no API calls**
-2. **Chart Data**: Auto-fetches from Polygon.io when stocks are selected - **API calls only when needed**
-3. **Rate Limiting**: Sliding window rate limiter protects the aggregates endpoint (5 calls/min)
-4. **Client Caching**: SWR provides automatic client-side caching and revalidation
+1. **Local Stock Search**: Static JSON file with 328 popular US stocks - **zero API calls for search**
+   - Instant autocomplete results (< 50ms)
+   - Includes major companies, ETFs, and international stocks
+   - Case-insensitive symbol and name matching
 
-This design ensures instant search results while respecting the free tier API limits.
+2. **Manual Chart Loading**: Explicit "Load Chart" button prevents unnecessary API calls
+   - Users select stocks without triggering fetches
+   - Single API call fetches all selected stocks at once
+   - Visual feedback shows API usage cost (1 call per load)
+
+3. **Rate Limiting**: Sliding window limiter protects the aggregates endpoint
+   - Respects Polygon.io free tier limit (5 calls/min)
+   - Automatic queuing when limit approached
+   - Prevents accidental rate limit violations
+
+4. **Client-Side Caching**: SWR provides intelligent caching
+   - 5-minute cache for fetched data
+   - Reduces redundant API calls
+   - Instant display for recently viewed data
+
+This multi-layered approach ensures a responsive user experience while staying well within API limits.
 
 ## API Endpoints
 

@@ -116,6 +116,7 @@ export interface StockStore {
   selectedStocks: string[];
   dateRange: DateRange;
   priceType: PriceType;
+  shouldFetchChart: boolean;
   addStock: (symbol: string) => void;
   removeStock: (symbol: string) => void;
   setStocks: (symbols: string[]) => void;
@@ -124,6 +125,8 @@ export interface StockStore {
   clearStocks: () => void;
   canAddStock: () => boolean;
   hasStocks: () => boolean;
+  triggerFetch: () => void;
+  resetFetch: () => void;
 }
 
 /** Return type for useStockData hook */
