@@ -1,9 +1,17 @@
+// ============================================================================
+// Core Types
+// ============================================================================
+
 export type PriceType = 'open' | 'high' | 'low' | 'close';
 
 export interface DateRange {
   from: string;
   to: string;
 }
+
+// ============================================================================
+// Polygon API Types
+// ============================================================================
 
 /** Individual bar/candle data from Polygon API */
 export interface PolygonBar {
@@ -53,6 +61,10 @@ export interface PolygonTickerSearchResponse {
   next_url?: string;
 }
 
+// ============================================================================
+// Internal Data Structures
+// ============================================================================
+
 /** Map of stock symbols to their bar data */
 export interface StockDataMap {
   [symbol: string]: PolygonBar[];
@@ -72,6 +84,10 @@ export interface Stock {
   exchange?: string;
 }
 
+// ============================================================================
+// API Response Types
+// ============================================================================
+
 /** Generic API response wrapper */
 export interface ApiResponse<T = unknown> {
   success: boolean;
@@ -90,6 +106,10 @@ export interface StockSearchResponse extends ApiResponse<Stock[]> {
   data?: Stock[];
   results?: Stock[];
 }
+
+// ============================================================================
+// Store and Hook Interfaces
+// ============================================================================
 
 /** Zustand store state interface */
 export interface StockStore {
@@ -119,4 +139,32 @@ export interface UseStockSearchReturn {
   results: Stock[];
   isLoading: boolean;
   error: Error | null;
+}
+
+// ============================================================================
+// Component Props Interfaces
+// ============================================================================
+
+/** Props for LoadingSpinner component */
+export interface LoadingSpinnerProps {
+  text?: string;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  centered?: boolean;
+  className?: string;
+}
+
+/** Props for ErrorMessage component */
+export interface ErrorMessageProps {
+  title?: string;
+  message: string;
+  onRetry?: () => void;
+  className?: string;
+}
+
+/** Props for EmptyState component */
+export interface EmptyStateProps {
+  title: string;
+  message: string;
+  icon?: React.ReactNode;
+  className?: string;
 }

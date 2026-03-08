@@ -1,10 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import type { PolygonTickerSearchResponse, Stock, StockSearchResponse } from '@/types/stock.types';
+import { NextRequest } from 'next/server';
+import type { PolygonTickerSearchResponse, Stock } from '@/types/stock.types';
 import { rateLimiter } from '@/lib/rateLimit';
-
-const POLYGON_BASE_URL = 'https://api.polygon.io';
-const DEFAULT_LIMIT = 10;
-const MAX_LIMIT = 50;
+import { createErrorResponse, createSuccessResponse } from '@/lib/apiHelpers';
+import { POLYGON_BASE_URL, API_LIMITS } from '@/lib/constants';
 
 /** Validates that the API key is configured */
 function validateApiKey(): string | null {
@@ -26,9 +24,9 @@ function parseQueryParams(searchParams: URLSearchParams): { query: string; limit
     return { error: 'Query parameter is required' };
   }
 
-  const limit = Math.min(parseInt(limitParam || DEFAULT_LIMIT.toString(), 10), MAX_LIMIT);
+  const limit = Math.min(parseInt(limitParam || API_LIMITS.SEARCH_DEFAULT_LIMIT.toString(), 10), API_LIMITS.SEARCH_MAX_LIMIT);
   if (isNaN(limit) || limit < 1) {
-    return { error: `Invalid limit parameter. Must be a number between 1 and ${MAX_LIMIT}` };
+    return { error: `Invalid limit parameter. Must be a number between 1 and ${API_LIMITS.SEARCH_MAX_LIMIT}` };
   }
 
   return {
@@ -96,34 +94,6 @@ function transformResults(polygonResponse: PolygonTickerSearchResponse): Stock[]
     }));
 }
 
-/** Creates an error response with appropriate status code */
-function createErrorResponse(error: string, status: number): NextResponse<StockSearchResponse> {
-  return NextResponse.json(
-    {
-      success: false,
-      error,
-    } as StockSearchResponse,
-    { status }
-  );
-}
-
-/** Creates a success response with results */
-function createSuccessResponse(results: Stock[]): NextResponse<StockSearchResponse> {
-  return NextResponse.json(
-    {
-      success: true,
-      data: results,
-      results,
-    } as StockSearchResponse,
-    {
-      status: 200,
-      headers: {
-        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
-      },
-    }
-  );
-}
-
 /**
  * GET /api/stocks/search
  * Search for US stock tickers by symbol or company name.
@@ -152,7 +122,10 @@ export async function GET(request: NextRequest) {
     );
     
     const results = transformResults(polygonData);
-    return createSuccessResponse(results);
+    return createSuccessResponse(
+      { data: results, results },
+      'public, s-maxage=3600, stale-while-revalidate=86400'
+    );
 
   } catch (error) {
     console.error('Stock search API error:', error);

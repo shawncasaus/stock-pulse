@@ -1,8 +1,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import type { StockStore, DateRange, PriceType } from '@/types/stock.types';
-
-const MAX_STOCKS = 3;
+import { MAX_SELECTED_STOCKS } from '@/lib/constants';
 
 /** Gets default date range (last year) */
 function getDefaultDateRange(): DateRange {
@@ -26,8 +25,8 @@ export const useStockStore = create<StockStore>()(
       addStock: (symbol: string) => {
         const { selectedStocks } = get();
         
-        if (selectedStocks.length >= MAX_STOCKS) {
-          console.warn(`Cannot add more than ${MAX_STOCKS} stocks`);
+        if (selectedStocks.length >= MAX_SELECTED_STOCKS) {
+          console.warn(`Cannot add more than ${MAX_SELECTED_STOCKS} stocks`);
           return;
         }
 
@@ -45,7 +44,7 @@ export const useStockStore = create<StockStore>()(
       },
 
       setStocks: (symbols: string[]) => {
-        const validSymbols = symbols.slice(0, MAX_STOCKS);
+        const validSymbols = symbols.slice(0, MAX_SELECTED_STOCKS);
         const uniqueSymbols = Array.from(new Set(validSymbols));
         set({ selectedStocks: uniqueSymbols });
       },
@@ -63,7 +62,7 @@ export const useStockStore = create<StockStore>()(
       },
 
       canAddStock: () => {
-        return get().selectedStocks.length < MAX_STOCKS;
+        return get().selectedStocks.length < MAX_SELECTED_STOCKS;
       },
 
       hasStocks: () => {

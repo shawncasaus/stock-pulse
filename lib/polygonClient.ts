@@ -4,8 +4,8 @@
  */
 
 import type { PolygonBar, PolygonResponse } from '@/types/stock.types';
-
-const POLYGON_BASE_URL = 'https://api.polygon.io';
+import { validateStockSymbol, validateDates } from './validators';
+import { POLYGON_BASE_URL } from './constants';
 
 /** Gets the Polygon API key from environment variables */
 function getApiKey(): string {
@@ -16,29 +16,6 @@ function getApiKey(): string {
   }
 
   return apiKey;
-}
-
-/** Validates date string format (YYYY-MM-DD) */
-function validateDateFormat(date: string, fieldName: string): void {
-  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-  
-  if (!dateRegex.test(date)) {
-    throw new Error(`${fieldName} must be in YYYY-MM-DD format. Got: ${date}`);
-  }
-
-  const parsedDate = new Date(date);
-  if (isNaN(parsedDate.getTime())) {
-    throw new Error(`${fieldName} is not a valid date: ${date}`);
-  }
-}
-
-/** Validates stock symbol format (1-5 uppercase letters) */
-function validateSymbol(symbol: string): void {
-  const symbolRegex = /^[A-Z]{1,5}$/;
-  
-  if (!symbolRegex.test(symbol)) {
-    throw new Error(`Invalid stock symbol format: ${symbol}. Must be 1-5 uppercase letters.`);
-  }
 }
 
 /** Builds the Polygon aggregates API URL with required parameters */
@@ -84,15 +61,14 @@ export async function fetchPolygonAggregates(
   from: string,
   to: string
 ): Promise<PolygonBar[]> {
-  validateSymbol(symbol);
-  validateDateFormat(from, 'from');
-  validateDateFormat(to, 'to');
+  const symbolValidation = validateStockSymbol(symbol);
+  if (!symbolValidation.valid) {
+    throw new Error(symbolValidation.error);
+  }
 
-  const fromDate = new Date(from);
-  const toDate = new Date(to);
-  
-  if (fromDate > toDate) {
-    throw new Error(`'from' date (${from}) must be before or equal to 'to' date (${to})`);
+  const dateValidation = validateDates(from, to);
+  if (!dateValidation.valid) {
+    throw new Error(dateValidation.error);
   }
 
   const apiKey = getApiKey();

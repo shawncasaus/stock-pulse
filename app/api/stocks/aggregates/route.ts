@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import type { StockDataMap, StockDataResponse } from '@/types/stock.types';
+import { NextRequest } from 'next/server';
+import type { StockDataMap } from '@/types/stock.types';
 import { rateLimiter } from '@/lib/rateLimit';
 import { fetchPolygonAggregates } from '@/lib/polygonClient';
-
-const MAX_SYMBOLS = 3;
+import { MAX_SELECTED_STOCKS } from '@/lib/constants';
+import { createErrorResponse, createSuccessResponse } from '@/lib/apiHelpers';
+import { validateStockSymbols, validateDates } from '@/lib/validators';
 
 /** Parses and validates query parameters from the request */
 function parseQueryParams(searchParams: URLSearchParams): 
@@ -26,37 +27,20 @@ function parseQueryParams(searchParams: URLSearchParams):
     return { error: 'At least one stock symbol is required' };
   }
 
-  if (symbols.length > MAX_SYMBOLS) {
+  if (symbols.length > MAX_SELECTED_STOCKS) {
     return { 
-      error: `Maximum ${MAX_SYMBOLS} stocks allowed. You requested ${symbols.length}.` 
+      error: `Maximum ${MAX_SELECTED_STOCKS} stocks allowed. You requested ${symbols.length}.` 
     };
   }
 
-  const symbolRegex = /^[A-Z]{1,5}$/;
-  for (const symbol of symbols) {
-    if (!symbolRegex.test(symbol)) {
-      return { 
-        error: `Invalid symbol format: '${symbol}'. Symbols must be 1-5 uppercase letters.` 
-      };
-    }
+  const symbolValidation = validateStockSymbols(symbols);
+  if (!symbolValidation.valid) {
+    return { error: symbolValidation.error! };
   }
 
-  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-  if (!dateRegex.test(from)) {
-    return { error: `'from' date must be in YYYY-MM-DD format. Got: ${from}` };
-  }
-  if (!dateRegex.test(to)) {
-    return { error: `'to' date must be in YYYY-MM-DD format. Got: ${to}` };
-  }
-  const fromDate = new Date(from);
-  const toDate = new Date(to);
-
-  if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
-    return { error: 'Invalid date values' };
-  }
-
-  if (fromDate > toDate) {
-    return { error: `'from' date (${from}) must be before or equal to 'to' date (${to})` };
+  const dateValidation = validateDates(from, to);
+  if (!dateValidation.valid) {
+    return { error: dateValidation.error! };
   }
 
   return { symbols, from, to };
@@ -80,33 +64,6 @@ async function fetchStockData(
   return stockData;
 }
 
-/** Creates an error response with appropriate status code */
-function createErrorResponse(error: string, status: number): NextResponse<StockDataResponse> {
-  return NextResponse.json(
-    {
-      success: false,
-      error,
-    } as StockDataResponse,
-    { status }
-  );
-}
-
-/** Creates a success response with stock data */
-function createSuccessResponse(data: StockDataMap): NextResponse<StockDataResponse> {
-  return NextResponse.json(
-    {
-      success: true,
-      data,
-    } as StockDataResponse,
-    {
-      status: 200,
-      headers: {
-        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
-      },
-    }
-  );
-}
-
 /**
  * GET /api/stocks/aggregates
  * Fetches daily aggregate stock data (OHLCV) for multiple symbols.
@@ -121,7 +78,10 @@ export async function GET(request: NextRequest) {
     }
 
     const stockData = await fetchStockData(params.symbols, params.from, params.to);
-    return createSuccessResponse(stockData);
+    return createSuccessResponse(
+      stockData,
+      'public, s-maxage=300, stale-while-revalidate=600'
+    );
 
   } catch (error) {
     console.error('Aggregates API error:', error);
