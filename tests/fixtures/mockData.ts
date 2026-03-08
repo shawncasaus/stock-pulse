@@ -78,16 +78,19 @@ export const mockStockDataMap: StockDataMap = {
 export const mockChartDataPoints: ChartDataPoint[] = [
   {
     date: '2024-01-01',
+    timestamp: new Date('2024-01-01').getTime(),
     AAPL: 105,
     TSLA: 210,
   },
   {
     date: '2024-01-02',
+    timestamp: new Date('2024-01-02').getTime(),
     AAPL: 110,
     TSLA: 220,
   },
   {
     date: '2024-01-03',
+    timestamp: new Date('2024-01-03').getTime(),
     AAPL: 115,
     TSLA: 230,
   },
