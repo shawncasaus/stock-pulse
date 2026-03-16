@@ -1,3 +1,5 @@
+# FOR INTERVIEW AND ASSESSMENT PURPOSES ONLY
+
 # StockPulse
 
 A web application for visualizing and analyzing US equity price data. Select up to three stocks, choose a date range and price type, then view an interactive time series chart with zoom and pan capabilities.
